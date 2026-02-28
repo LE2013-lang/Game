@@ -20,6 +20,7 @@ window.addEventListener('load', () => {
         scale: {
             mode: Phaser.Scale.FIT,
             autoCenter: Phaser.Scale.CENTER_BOTH,
+            expandParent: true,
         },
         scene: [BootScene, MenuScene, GameScene, GameOverScene, LevelCompleteScene, ShopScene, BossIntroScene, BossVictoryScene],
         pixelArt: true,

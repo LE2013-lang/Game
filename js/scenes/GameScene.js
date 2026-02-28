@@ -690,17 +690,28 @@ class GameScene extends Phaser.Scene {
     }
 
     _setupTouchControls() {
+        // Detect touch device
+        const isTouchDevice = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+        if (isTouchDevice) {
+            this._createMobileButtons();
+        }
+
+        // Keep swipe controls as fallback
         let startX = 0;
         let startY = 0;
         let startTime = 0;
 
         this.input.on('pointerdown', (pointer) => {
+            // Ignore taps on the mobile button area (bottom 130px)
+            if (isTouchDevice && pointer.y > CONFIG.HEIGHT - 130) return;
             startX = pointer.x;
             startY = pointer.y;
             startTime = this.time.now;
         });
 
         this.input.on('pointerup', (pointer) => {
+            if (isTouchDevice && pointer.y > CONFIG.HEIGHT - 130) return;
             const dx = pointer.x - startX;
             const dy = pointer.y - startY;
             const dt = this.time.now - startTime;
@@ -711,10 +722,8 @@ class GameScene extends Phaser.Scene {
                 if (Math.abs(dy) > Math.abs(dx)) {
                     // Vertical swipe
                     if (dy < 0) {
-                        // Swipe up — lane up
                         this.player.switchLane(-1);
                     } else {
-                        // Swipe down — lane down or slide
                         if (this.player.isOnGround) {
                             this.player.slide();
                         } else {
@@ -722,20 +731,109 @@ class GameScene extends Phaser.Scene {
                         }
                     }
                 } else {
-                    // Horizontal swipe — lane switch
                     if (dx > 0) this.player.switchLane(1);
                     else this.player.switchLane(-1);
                 }
             } else {
-                // Tap
                 if (dt < 250) {
                     this.player.jump();
                 } else {
-                    // Long press — slide
                     this.player.slide();
                 }
             }
         });
+    }
+
+    _createMobileButtons() {
+        const btnAlpha = 0.35;
+        const btnSize = 52;
+        const pad = 12;
+        const bottomY = CONFIG.HEIGHT - 30;
+
+        // ---- LEFT SIDE: Lane Up / Lane Down ----
+        const leftCenterX = 55;
+
+        // Lane Up button (▲)
+        const upBg = this.add.graphics().setDepth(200).setAlpha(btnAlpha);
+        upBg.fillStyle(0x3344aa, 1);
+        upBg.fillRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 10);
+        upBg.lineStyle(2, 0x6688ff, 0.6);
+        upBg.strokeRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 10);
+
+        this.add.text(leftCenterX, bottomY - btnSize - pad - btnSize / 2, '▲', {
+            fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
+        }).setOrigin(0.5).setDepth(201).setAlpha(0.7);
+
+        const upZone = this.add.zone(leftCenterX, bottomY - btnSize - pad - btnSize / 2, btnSize, btnSize)
+            .setInteractive().setDepth(202);
+        upZone.on('pointerdown', () => {
+            this.player.switchLane(-1);
+            upBg.setAlpha(0.7);
+            this.time.delayedCall(120, () => upBg.setAlpha(btnAlpha));
+        });
+
+        // Lane Down button (▼)
+        const downBg = this.add.graphics().setDepth(200).setAlpha(btnAlpha);
+        downBg.fillStyle(0x3344aa, 1);
+        downBg.fillRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 10);
+        downBg.lineStyle(2, 0x6688ff, 0.6);
+        downBg.strokeRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 10);
+
+        this.add.text(leftCenterX, bottomY - btnSize / 2, '▼', {
+            fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
+        }).setOrigin(0.5).setDepth(201).setAlpha(0.7);
+
+        const downZone = this.add.zone(leftCenterX, bottomY - btnSize / 2, btnSize, btnSize)
+            .setInteractive().setDepth(202);
+        downZone.on('pointerdown', () => {
+            this.player.switchLane(1);
+            downBg.setAlpha(0.7);
+            this.time.delayedCall(120, () => downBg.setAlpha(btnAlpha));
+        });
+
+        // ---- RIGHT SIDE: Jump / Slide ----
+        const rightCenterX = CONFIG.WIDTH - 55;
+
+        // Jump button (top-right)
+        const jumpBg = this.add.graphics().setDepth(200).setAlpha(btnAlpha);
+        jumpBg.fillStyle(0x338833, 1);
+        jumpBg.fillRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 10);
+        jumpBg.lineStyle(2, 0x66ff66, 0.6);
+        jumpBg.strokeRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 10);
+
+        this.add.text(rightCenterX, bottomY - btnSize - pad - btnSize / 2, 'JUMP', {
+            fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
+        }).setOrigin(0.5).setDepth(201).setAlpha(0.7);
+
+        const jumpZone = this.add.zone(rightCenterX, bottomY - btnSize - pad - btnSize / 2, btnSize, btnSize)
+            .setInteractive().setDepth(202);
+        jumpZone.on('pointerdown', () => {
+            this.player.jump();
+            jumpBg.setAlpha(0.7);
+            this.time.delayedCall(120, () => jumpBg.setAlpha(btnAlpha));
+        });
+
+        // Slide button (bottom-right)
+        const slideBg = this.add.graphics().setDepth(200).setAlpha(btnAlpha);
+        slideBg.fillStyle(0xaa6633, 1);
+        slideBg.fillRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 10);
+        slideBg.lineStyle(2, 0xffaa44, 0.6);
+        slideBg.strokeRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 10);
+
+        this.add.text(rightCenterX, bottomY - btnSize / 2, 'SLIDE', {
+            fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
+        }).setOrigin(0.5).setDepth(201).setAlpha(0.7);
+
+        const slideZone = this.add.zone(rightCenterX, bottomY - btnSize / 2, btnSize, btnSize)
+            .setInteractive().setDepth(202);
+        slideZone.on('pointerdown', () => {
+            this.player.slide();
+            slideBg.setAlpha(0.7);
+            this.time.delayedCall(120, () => slideBg.setAlpha(btnAlpha));
+        });
+
+        // Store refs for cleanup
+        this.mobileButtons = [upBg, downBg, jumpBg, slideBg, upZone, downZone, jumpZone, slideZone];
     }
 
     // ----------------------------------------------------------

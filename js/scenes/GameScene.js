@@ -703,15 +703,19 @@ class GameScene extends Phaser.Scene {
         let startTime = 0;
 
         this.input.on('pointerdown', (pointer) => {
-            // Ignore taps on the mobile button area (bottom 130px)
-            if (isTouchDevice && pointer.y > CONFIG.HEIGHT - 130) return;
+            // Ignore taps on the mobile button area (bottom 180px, sides 110px)
+            if (isTouchDevice) {
+                if (pointer.y > CONFIG.HEIGHT - 180 && (pointer.x < 110 || pointer.x > CONFIG.WIDTH - 110)) return;
+            }
             startX = pointer.x;
             startY = pointer.y;
             startTime = this.time.now;
         });
 
         this.input.on('pointerup', (pointer) => {
-            if (isTouchDevice && pointer.y > CONFIG.HEIGHT - 130) return;
+            if (isTouchDevice) {
+                if (pointer.y > CONFIG.HEIGHT - 180 && (pointer.x < 110 || pointer.x > CONFIG.WIDTH - 110)) return;
+            }
             const dx = pointer.x - startX;
             const dy = pointer.y - startY;
             const dt = this.time.now - startTime;
@@ -746,22 +750,22 @@ class GameScene extends Phaser.Scene {
 
     _createMobileButtons() {
         const btnAlpha = 0.35;
-        const btnSize = 52;
-        const pad = 12;
-        const bottomY = CONFIG.HEIGHT - 30;
+        const btnSize = 76;
+        const pad = 14;
+        const bottomY = CONFIG.HEIGHT - 20;
 
         // ---- LEFT SIDE: Lane Up / Lane Down ----
-        const leftCenterX = 55;
+        const leftCenterX = 60;
 
         // Lane Up button (▲)
         const upBg = this.add.graphics().setDepth(200).setAlpha(btnAlpha);
         upBg.fillStyle(0x3344aa, 1);
-        upBg.fillRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 10);
+        upBg.fillRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 12);
         upBg.lineStyle(2, 0x6688ff, 0.6);
-        upBg.strokeRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 10);
+        upBg.strokeRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 12);
 
         this.add.text(leftCenterX, bottomY - btnSize - pad - btnSize / 2, '▲', {
-            fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
+            fontSize: '30px', fontStyle: 'bold', color: '#ffffff',
         }).setOrigin(0.5).setDepth(201).setAlpha(0.7);
 
         const upZone = this.add.zone(leftCenterX, bottomY - btnSize - pad - btnSize / 2, btnSize, btnSize)
@@ -775,12 +779,12 @@ class GameScene extends Phaser.Scene {
         // Lane Down button (▼)
         const downBg = this.add.graphics().setDepth(200).setAlpha(btnAlpha);
         downBg.fillStyle(0x3344aa, 1);
-        downBg.fillRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 10);
+        downBg.fillRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 12);
         downBg.lineStyle(2, 0x6688ff, 0.6);
-        downBg.strokeRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 10);
+        downBg.strokeRoundedRect(leftCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 12);
 
         this.add.text(leftCenterX, bottomY - btnSize / 2, '▼', {
-            fontSize: '22px', fontStyle: 'bold', color: '#ffffff',
+            fontSize: '30px', fontStyle: 'bold', color: '#ffffff',
         }).setOrigin(0.5).setDepth(201).setAlpha(0.7);
 
         const downZone = this.add.zone(leftCenterX, bottomY - btnSize / 2, btnSize, btnSize)
@@ -792,17 +796,17 @@ class GameScene extends Phaser.Scene {
         });
 
         // ---- RIGHT SIDE: Jump / Slide ----
-        const rightCenterX = CONFIG.WIDTH - 55;
+        const rightCenterX = CONFIG.WIDTH - 60;
 
         // Jump button (top-right)
         const jumpBg = this.add.graphics().setDepth(200).setAlpha(btnAlpha);
         jumpBg.fillStyle(0x338833, 1);
-        jumpBg.fillRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 10);
+        jumpBg.fillRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 12);
         jumpBg.lineStyle(2, 0x66ff66, 0.6);
-        jumpBg.strokeRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 10);
+        jumpBg.strokeRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize - pad - btnSize, btnSize, btnSize, 12);
 
         this.add.text(rightCenterX, bottomY - btnSize - pad - btnSize / 2, 'JUMP', {
-            fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
+            fontSize: '15px', fontStyle: 'bold', color: '#ffffff',
         }).setOrigin(0.5).setDepth(201).setAlpha(0.7);
 
         const jumpZone = this.add.zone(rightCenterX, bottomY - btnSize - pad - btnSize / 2, btnSize, btnSize)
@@ -816,12 +820,12 @@ class GameScene extends Phaser.Scene {
         // Slide button (bottom-right)
         const slideBg = this.add.graphics().setDepth(200).setAlpha(btnAlpha);
         slideBg.fillStyle(0xaa6633, 1);
-        slideBg.fillRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 10);
+        slideBg.fillRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 12);
         slideBg.lineStyle(2, 0xffaa44, 0.6);
-        slideBg.strokeRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 10);
+        slideBg.strokeRoundedRect(rightCenterX - btnSize / 2, bottomY - btnSize, btnSize, btnSize, 12);
 
         this.add.text(rightCenterX, bottomY - btnSize / 2, 'SLIDE', {
-            fontSize: '11px', fontStyle: 'bold', color: '#ffffff',
+            fontSize: '15px', fontStyle: 'bold', color: '#ffffff',
         }).setOrigin(0.5).setDepth(201).setAlpha(0.7);
 
         const slideZone = this.add.zone(rightCenterX, bottomY - btnSize / 2, btnSize, btnSize)

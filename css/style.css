@@ -2,6 +2,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 html, body {
@@ -13,6 +14,12 @@ html, body {
     justify-content: center;
     align-items: center;
     font-family: 'Segoe UI', Arial, sans-serif;
+    /* Prevent pull-to-refresh & overscroll bounce */
+    overscroll-behavior: none;
+    touch-action: none;
+    position: fixed;
+    top: 0;
+    left: 0;
 }
 
 #game-container {
@@ -21,9 +28,14 @@ html, body {
     box-shadow:
         0 0 30px rgba(155, 89, 182, 0.3),
         0 0 60px rgba(155, 89, 182, 0.1);
+    /* Prevent text selection & context menu on long press */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
 }
 
 #game-container canvas {
     display: block;
     border-radius: 4px;
+    touch-action: none;
 }

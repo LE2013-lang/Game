@@ -26,7 +26,7 @@ window.addEventListener('load', () => {
         pixelArt: true,
         roundPixels: true,
         input: {
-            activePointers: 2,
+            activePointers: 3,
         },
     };
 

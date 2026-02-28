@@ -14,6 +14,12 @@
     <!-- Phaser 3 -->
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 
+    <!-- Prevent default touch behaviors -->
+    <script>
+        document.addEventListener('touchmove', function(e) { e.preventDefault(); }, { passive: false });
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    </script>
+
     <!-- Game Scripts (order matters) -->
     <script src="js/config/constants.js"></script>
     <script src="js/systems/SaveManager.js"></script>

@@ -337,20 +337,37 @@ class MenuScene extends Phaser.Scene {
         }
 
         // Controls help
+        const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
         const controlsY = 500;
-        this.add.text(cx, controlsY,
-            'SPACE Jump  •  SHIFT Slide  •  W/S  ↑/↓ Switch Lane', {
-            fontFamily: '"Segoe UI", Arial, sans-serif',
-            fontSize: '11px',
-            color: '#6a5a7a',
-        }).setOrigin(0.5);
+        if (isMobile) {
+            this.add.text(cx, controlsY,
+                'Use on-screen buttons during gameplay', {
+                fontFamily: '"Segoe UI", Arial, sans-serif',
+                fontSize: '11px',
+                color: '#6a5a7a',
+            }).setOrigin(0.5);
 
-        this.add.text(cx, controlsY + 18,
-            'Touch: Tap = Jump  •  Swipe ↑↓ = Lane  •  Hold = Slide', {
-            fontFamily: '"Segoe UI", Arial, sans-serif',
-            fontSize: '10px',
-            color: '#5a4a6a',
-        }).setOrigin(0.5);
+            this.add.text(cx, controlsY + 18,
+                '▲▼ = Switch Lane  •  JUMP  •  SLIDE', {
+                fontFamily: '"Segoe UI", Arial, sans-serif',
+                fontSize: '10px',
+                color: '#5a4a6a',
+            }).setOrigin(0.5);
+        } else {
+            this.add.text(cx, controlsY,
+                'SPACE Jump  •  SHIFT Slide  •  W/S  \u2191/\u2193 Switch Lane', {
+                fontFamily: '"Segoe UI", Arial, sans-serif',
+                fontSize: '11px',
+                color: '#6a5a7a',
+            }).setOrigin(0.5);
+
+            this.add.text(cx, controlsY + 18,
+                'Touch: Tap = Jump  •  Swipe \u2191\u2193 = Lane  •  Hold = Slide', {
+                fontFamily: '"Segoe UI", Arial, sans-serif',
+                fontSize: '10px',
+                color: '#5a4a6a',
+            }).setOrigin(0.5);
+        }
 
         // Version
         this.add.text(CONFIG.WIDTH - 10, CONFIG.HEIGHT - 10, 'v1.1', {

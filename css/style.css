@@ -1,0 +1,29 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #050310;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI', Arial, sans-serif;
+}
+
+#game-container {
+    position: relative;
+    border-radius: 4px;
+    box-shadow:
+        0 0 30px rgba(155, 89, 182, 0.3),
+        0 0 60px rgba(155, 89, 182, 0.1);
+}
+
+#game-container canvas {
+    display: block;
+    border-radius: 4px;
+}

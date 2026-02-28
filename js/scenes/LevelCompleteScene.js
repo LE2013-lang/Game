@@ -14,6 +14,7 @@ class LevelCompleteScene extends Phaser.Scene {
         this.soulsEarned = data.souls || 0;
         this.enemiesDodged = data.enemies || 0;
         this.isHardMode = !!data.isHardMode;
+        this.isInsaneMode = !!data.isInsaneMode;
     }
 
     create() {
@@ -199,6 +200,16 @@ class LevelCompleteScene extends Phaser.Scene {
             if (!hardLevels.includes(this.level)) {
                 hardLevels.push(this.level);
                 SaveManager.update({ hardModeLevels: hardLevels });
+            }
+        }
+
+        // Save insane mode completion
+        if (this.isInsaneMode) {
+            const iSave = SaveManager.load();
+            const insaneLevels = iSave.insaneModeLevels || [];
+            if (!insaneLevels.includes(this.level)) {
+                insaneLevels.push(this.level);
+                SaveManager.update({ insaneModeLevels: insaneLevels });
             }
         }
 

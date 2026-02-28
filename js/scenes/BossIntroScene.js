@@ -10,6 +10,7 @@ class BossIntroScene extends Phaser.Scene {
     init(data) {
         this.levelIndex = data.levelIndex;
         this.isHardMode = !!data.isHardMode;
+        this.isInsaneMode = !!data.isInsaneMode;
     }
 
     create() {
@@ -134,7 +135,7 @@ class BossIntroScene extends Phaser.Scene {
             this.cameras.main.flash(400, 255, 68, 0);
             this.cameras.main.fadeOut(600, 26, 8, 8);
             this.time.delayedCall(700, () => {
-                this.scene.start('Game', { levelIndex: this.levelIndex, isHardMode: this.isHardMode });
+                this.scene.start('Game', { levelIndex: this.levelIndex, isHardMode: this.isHardMode, isInsaneMode: this.isInsaneMode });
             });
         });
     }

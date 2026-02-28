@@ -39,6 +39,16 @@ class BootScene extends Phaser.Scene {
         this._texMagnetBtn();
         this._texHealIcon();
         this._texHealBtn();
+        this._texShadowCloakIcon();
+        this._texShadowCloakBtn();
+        this._texDoubleGemsIcon();
+        this._texDoubleGemsBtn();
+        this._texPhoenixIcon();
+        this._texPhoenixBtn();
+        this._texLightningIcon();
+        this._texLightningBtn();
+        this._texTripleJumpIcon();
+        this._texTripleJumpBtn();
         this._texBoss();
     }
 
@@ -1254,6 +1264,210 @@ class BootScene extends Phaser.Scene {
     }
 
     // ---- BOSS FIGHT TEXTURES ------------------------------------
+
+    _texShadowCloakIcon() {
+        const g = this.make.graphics({ add: false });
+        // Dark cloak/shield shape
+        g.fillStyle(0x8844cc);
+        g.fillCircle(16, 16, 14);
+        g.fillStyle(0x2a0a4a, 0.7);
+        g.fillCircle(16, 16, 10);
+        // Eye symbol
+        g.fillStyle(0xcc88ff);
+        g.fillCircle(16, 16, 4);
+        g.fillStyle(0xffffff);
+        g.fillCircle(16, 15, 2);
+        g.generateTexture('icon_cloak', 32, 32);
+        g.destroy();
+    }
+
+    _texShadowCloakBtn() {
+        let g = this.make.graphics({ add: false });
+        g.fillStyle(0x1a0a2a, 0.9);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0x8844cc, 0.8);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0x8844cc);
+        g.fillCircle(20, 20, 10);
+        g.fillStyle(0x2a0a4a, 0.7);
+        g.fillCircle(20, 20, 7);
+        g.fillStyle(0xcc88ff);
+        g.fillCircle(20, 20, 3);
+        g.generateTexture('btn_cloak', 40, 40);
+        g.destroy();
+
+        g = this.make.graphics({ add: false });
+        g.fillStyle(0x1a1a1a, 0.7);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0x4a4a4a, 0.5);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0x4a4a4a);
+        g.fillCircle(20, 20, 10);
+        g.generateTexture('btn_cloak_off', 40, 40);
+        g.destroy();
+    }
+
+    _texDoubleGemsIcon() {
+        const g = this.make.graphics({ add: false });
+        // Two gem shapes
+        g.fillStyle(0xffcc00);
+        g.fillTriangle(8, 6, 16, 22, 0, 22);
+        g.fillStyle(0xffaa00);
+        g.fillTriangle(24, 6, 32, 22, 16, 22);
+        // x2 indicator
+        g.fillStyle(0xffffff, 0.9);
+        g.fillRect(10, 24, 12, 6);
+        g.generateTexture('icon_double_gems', 32, 32);
+        g.destroy();
+    }
+
+    _texDoubleGemsBtn() {
+        let g = this.make.graphics({ add: false });
+        g.fillStyle(0x2a2a0a, 0.9);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0xffcc00, 0.8);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0xffcc00);
+        g.fillTriangle(14, 10, 22, 24, 6, 24);
+        g.fillStyle(0xffaa00);
+        g.fillTriangle(26, 10, 34, 24, 18, 24);
+        g.generateTexture('btn_double_gems', 40, 40);
+        g.destroy();
+
+        g = this.make.graphics({ add: false });
+        g.fillStyle(0x1a1a1a, 0.7);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0x4a4a4a, 0.5);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0x4a4a4a);
+        g.fillTriangle(14, 10, 22, 24, 6, 24);
+        g.fillTriangle(26, 10, 34, 24, 18, 24);
+        g.generateTexture('btn_double_gems_off', 40, 40);
+        g.destroy();
+    }
+
+    _texPhoenixIcon() {
+        const g = this.make.graphics({ add: false });
+        // Fire bird shape  
+        g.fillStyle(0xff6600);
+        g.fillCircle(16, 14, 8);
+        g.fillTriangle(8, 14, 24, 14, 16, 30);
+        // Wings
+        g.fillStyle(0xffaa00);
+        g.fillTriangle(2, 10, 12, 8, 8, 20);
+        g.fillTriangle(30, 10, 20, 8, 24, 20);
+        // Inner flame
+        g.fillStyle(0xffee44);
+        g.fillCircle(16, 14, 4);
+        g.generateTexture('icon_phoenix', 32, 32);
+        g.destroy();
+    }
+
+    _texPhoenixBtn() {
+        let g = this.make.graphics({ add: false });
+        g.fillStyle(0x2a1a0a, 0.9);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0xff6600, 0.8);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0xff6600);
+        g.fillCircle(20, 16, 7);
+        g.fillTriangle(13, 16, 27, 16, 20, 30);
+        g.fillStyle(0xffee44);
+        g.fillCircle(20, 16, 3);
+        g.generateTexture('btn_phoenix', 40, 40);
+        g.destroy();
+
+        g = this.make.graphics({ add: false });
+        g.fillStyle(0x1a1a1a, 0.7);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0x4a4a4a, 0.5);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0x4a4a4a);
+        g.fillCircle(20, 16, 7);
+        g.fillTriangle(13, 16, 27, 16, 20, 30);
+        g.generateTexture('btn_phoenix_off', 40, 40);
+        g.destroy();
+    }
+
+    _texLightningIcon() {
+        const g = this.make.graphics({ add: false });
+        // Lightning bolt
+        g.fillStyle(0x44ddff);
+        g.fillTriangle(18, 0, 8, 16, 16, 16);
+        g.fillTriangle(14, 16, 24, 16, 14, 32);
+        // Glow
+        g.fillStyle(0xffffff, 0.5);
+        g.fillTriangle(16, 4, 10, 14, 15, 14);
+        g.generateTexture('icon_lightning', 32, 32);
+        g.destroy();
+    }
+
+    _texLightningBtn() {
+        let g = this.make.graphics({ add: false });
+        g.fillStyle(0x0a1a2a, 0.9);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0x44ddff, 0.8);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0x44ddff);
+        g.fillTriangle(22, 4, 12, 20, 20, 20);
+        g.fillTriangle(18, 20, 28, 20, 18, 36);
+        g.fillStyle(0xffffff, 0.5);
+        g.fillTriangle(20, 8, 14, 18, 19, 18);
+        g.generateTexture('btn_lightning', 40, 40);
+        g.destroy();
+
+        g = this.make.graphics({ add: false });
+        g.fillStyle(0x1a1a1a, 0.7);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0x4a4a4a, 0.5);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0x4a4a4a);
+        g.fillTriangle(22, 4, 12, 20, 20, 20);
+        g.fillTriangle(18, 20, 28, 20, 18, 36);
+        g.generateTexture('btn_lightning_off', 40, 40);
+        g.destroy();
+    }
+
+    _texTripleJumpIcon() {
+        const g = this.make.graphics({ add: false });
+        // Three upward arrows
+        g.fillStyle(0x44ff88);
+        g.fillTriangle(16, 2, 8, 12, 24, 12);
+        g.fillStyle(0x33dd77);
+        g.fillTriangle(16, 10, 8, 20, 24, 20);
+        g.fillStyle(0x22bb66);
+        g.fillTriangle(16, 18, 8, 28, 24, 28);
+        g.generateTexture('icon_triple_jump', 32, 32);
+        g.destroy();
+    }
+
+    _texTripleJumpBtn() {
+        let g = this.make.graphics({ add: false });
+        g.fillStyle(0x0a2a1a, 0.9);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0x44ff88, 0.8);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0x44ff88);
+        g.fillTriangle(20, 6, 12, 16, 28, 16);
+        g.fillStyle(0x33dd77);
+        g.fillTriangle(20, 14, 12, 24, 28, 24);
+        g.fillStyle(0x22bb66);
+        g.fillTriangle(20, 22, 12, 32, 28, 32);
+        g.generateTexture('btn_triple_jump', 40, 40);
+        g.destroy();
+
+        g = this.make.graphics({ add: false });
+        g.fillStyle(0x1a1a1a, 0.7);
+        g.fillCircle(20, 20, 20);
+        g.lineStyle(2, 0x4a4a4a, 0.5);
+        g.strokeCircle(20, 20, 19);
+        g.fillStyle(0x4a4a4a);
+        g.fillTriangle(20, 6, 12, 16, 28, 16);
+        g.fillTriangle(20, 14, 12, 24, 28, 24);
+        g.fillTriangle(20, 22, 12, 32, 28, 32);
+        g.generateTexture('btn_triple_jump_off', 40, 40);
+        g.destroy();
+    }
 
     _texBoss() {
         let g;

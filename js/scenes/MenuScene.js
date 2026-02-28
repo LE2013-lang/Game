@@ -176,11 +176,84 @@ class MenuScene extends Phaser.Scene {
         if (hardUnlocked) {
             hardZone.on('pointerdown', () => {
                 this.hardModeOn = !this.hardModeOn;
+                if (this.hardModeOn) this.insaneModeOn = false; // mutual exclusion
                 _drawHardBtn(this.hardModeOn);
                 hardLabel.setText(this.hardModeOn ? '\uD83D\uDD25 HARD MODE' : '\uD83D\uDD25 HARD MODE');
                 hardLabel.setColor(this.hardModeOn ? '#ff4444' : '#ff6644');
                 hardSub.setText(this.hardModeOn ? 'ON — 2\u00d7 Speed!' : 'OFF');
                 hardSub.setColor(this.hardModeOn ? '#ff6644' : '#886644');
+                // Reset insane visual
+                if (this.hardModeOn && insaneUnlocked) {
+                    _drawInsaneBtn(false);
+                    insaneLabel.setColor('#ff00ff');
+                    insaneSub.setText('OFF');
+                    insaneSub.setColor('#884488');
+                }
+            });
+        }
+
+        // ---- Insane Mode Toggle (below Hard Mode) ----
+        // Unlock requirement: two ticks on ALL level boxes (normal + hard completed for all 4)
+        const allNormalDone = save.levelsCompleted >= 4;
+        const hLevels = save.hardModeLevels || [];
+        const allHardDone = [1, 2, 3, 4].every(l => hLevels.includes(l));
+        const insaneUnlocked = allNormalDone && allHardDone;
+        this.insaneModeOn = false;
+
+        const ibg = this.add.graphics();
+        const _drawInsaneBtn = (on) => {
+            ibg.clear();
+            if (!insaneUnlocked) {
+                ibg.fillStyle(0x1a1a2a, 0.5);
+                ibg.fillRoundedRect(10, 106, 110, 42, 8);
+                ibg.lineStyle(1, 0x3a3a5a, 0.4);
+                ibg.strokeRoundedRect(10, 106, 110, 42, 8);
+            } else if (on) {
+                ibg.fillStyle(0x3a0a3a, 0.9);
+                ibg.fillRoundedRect(10, 106, 110, 42, 8);
+                ibg.lineStyle(2, 0xff00ff, 0.8);
+                ibg.strokeRoundedRect(10, 106, 110, 42, 8);
+            } else {
+                ibg.fillStyle(0x2a0a2a, 0.7);
+                ibg.fillRoundedRect(10, 106, 110, 42, 8);
+                ibg.lineStyle(2, 0xff00ff, 0.4);
+                ibg.strokeRoundedRect(10, 106, 110, 42, 8);
+            }
+        };
+        _drawInsaneBtn(false);
+
+        const insaneLabel = this.add.text(65, 118, insaneUnlocked ? '\uD83D\uDCA0 INSANE' : '\uD83D\uDD12 INSANE', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '12px',
+            fontStyle: 'bold',
+            color: insaneUnlocked ? '#ff00ff' : '#4a4a6a',
+        }).setOrigin(0.5);
+
+        const insaneSub = this.add.text(65, 135, insaneUnlocked ? 'OFF' : '\u2713\u2713 All Levels', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '9px',
+            color: insaneUnlocked ? '#884488' : '#3a3a5a',
+        }).setOrigin(0.5);
+
+        const insaneZone = this.add.zone(65, 127, 110, 42)
+            .setInteractive({ useHandCursor: insaneUnlocked });
+
+        if (insaneUnlocked) {
+            insaneZone.on('pointerdown', () => {
+                this.insaneModeOn = !this.insaneModeOn;
+                if (this.insaneModeOn) this.hardModeOn = false; // mutual exclusion
+                _drawInsaneBtn(this.insaneModeOn);
+                insaneLabel.setText(this.insaneModeOn ? '\uD83D\uDCA0 INSANE' : '\uD83D\uDCA0 INSANE');
+                insaneLabel.setColor(this.insaneModeOn ? '#ff44ff' : '#ff00ff');
+                insaneSub.setText(this.insaneModeOn ? 'ON — 4\u00d7 Speed!' : 'OFF');
+                insaneSub.setColor(this.insaneModeOn ? '#ff44ff' : '#884488');
+                // Reset hard visual
+                if (this.insaneModeOn) {
+                    _drawHardBtn(false);
+                    hardLabel.setColor('#ff6644');
+                    hardSub.setText('OFF');
+                    hardSub.setColor('#886644');
+                }
             });
         }
 
@@ -232,9 +305,9 @@ class MenuScene extends Phaser.Scene {
                     this.cameras.main.fadeOut(400, 10, 6, 26);
                     this.time.delayedCall(450, () => {
                         if (lvl.isBoss) {
-                            this.scene.start('BossIntro', { levelIndex: idx, isHardMode: !!this.hardModeOn });
+                            this.scene.start('BossIntro', { levelIndex: idx, isHardMode: !!this.hardModeOn, isInsaneMode: !!this.insaneModeOn });
                         } else {
-                            this.scene.start('Game', { levelIndex: idx, isHardMode: !!this.hardModeOn });
+                            this.scene.start('Game', { levelIndex: idx, isHardMode: !!this.hardModeOn, isInsaneMode: !!this.insaneModeOn });
                         }
                     });
                 });
@@ -257,6 +330,17 @@ class MenuScene extends Phaser.Scene {
                             fontSize: '14px',
                             fontStyle: 'bold',
                             color: '#ff4444',
+                        }).setOrigin(0.5);
+                    }
+
+                    // Insane mode checkmark (below hard)
+                    const insaneLevels = save.insaneModeLevels || [];
+                    if (insaneLevels.includes(lvl.level)) {
+                        this.add.text(btnX + checkOff, btnY + 10, '\u2713', {
+                            fontFamily: '"Segoe UI", Arial, sans-serif',
+                            fontSize: '14px',
+                            fontStyle: 'bold',
+                            color: '#ff00ff',
                         }).setOrigin(0.5);
                     }
                 }

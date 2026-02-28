@@ -14,6 +14,7 @@ class SaveManager {
         totalEnemiesKilled: 0,
         levelsCompleted: 0,
         hardModeLevels: [],
+        insaneModeLevels: [],
         settings: {
             musicVolume: 0.7,
             sfxVolume: 0.8,

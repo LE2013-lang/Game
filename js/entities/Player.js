@@ -123,6 +123,10 @@ class Player {
             this.velocityY = CONFIG.DOUBLE_JUMP_VELOCITY;
             this.jumpCount = 2;
             this._emitDoubleJumpParticle();
+        } else if (this.jumpCount === 2 && this.scene.tripleJumpActive) {
+            this.velocityY = CONFIG.DOUBLE_JUMP_VELOCITY;
+            this.jumpCount = 3;
+            this._emitDoubleJumpParticle();
         }
     }
 

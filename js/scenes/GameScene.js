@@ -14,6 +14,7 @@ class GameScene extends Phaser.Scene {
     init(data) {
         this.isEndless = !!(data && data.isEndless);
         this.isHardMode = !!(data && data.isHardMode);
+        this.isInsaneMode = !!(data && data.isInsaneMode);
         this.levelIndex = (data && data.levelIndex !== undefined) ? data.levelIndex : 0;
         this.levelConfig = this.isEndless
             ? { level: 0, distance: Infinity, speedScale: 1.0, label: 'Endless' }
@@ -26,7 +27,8 @@ class GameScene extends Phaser.Scene {
         this.distancePixels = 0;
         this.distanceMeters = 0;
         this.baseSpeed = CONFIG.BASE_SPEED * this.levelConfig.speedScale;
-        if (this.isHardMode) this.baseSpeed *= 2;
+        if (this.isInsaneMode) this.baseSpeed *= 4;
+        else if (this.isHardMode) this.baseSpeed *= 2;
         this.currentSpeed = this.baseSpeed;
         this.speedMultiplier = 1;
         this.soulsCollected = 0;
@@ -64,6 +66,40 @@ class GameScene extends Phaser.Scene {
         this.healCount = save0.healCount || 0;
         this.hasHeal = this.healCount > 0;
         this.healUsed = false;  // one use per run
+
+        // Shadow Cloak ability state
+        this.shadowCloakCount = save0.shadowCloakCount || 0;
+        this.hasShadowCloak = this.shadowCloakCount > 0;
+        this.shadowCloakActive = false;
+        this.shadowCloakUsed = false;
+        this.shadowCloakRemaining = 0;
+        this.shadowCloakDuration = 5000; // 5 seconds
+
+        // Double Gems ability state
+        this.doubleGemsCount = save0.doubleGemsCount || 0;
+        this.hasDoubleGems = this.doubleGemsCount > 0;
+        this.doubleGemsActive = false;
+        this.doubleGemsUsed = false;
+        this.doubleGemsRemaining = 0;
+        this.doubleGemsDuration = 15000; // 15 seconds
+
+        // Phoenix Feather ability state
+        this.phoenixCount = save0.phoenixCount || 0;
+        this.hasPhoenix = this.phoenixCount > 0;
+        this.phoenixUsed = false;
+
+        // Lightning Dash ability state
+        this.lightningCount = save0.lightningCount || 0;
+        this.hasLightning = this.lightningCount > 0;
+        this.lightningUsed = false;
+
+        // Triple Jump ability state
+        this.tripleJumpCount = save0.tripleJumpCount || 0;
+        this.hasTripleJump = this.tripleJumpCount > 0;
+        this.tripleJumpActive = false;
+        this.tripleJumpUsed = false;
+        this.tripleJumpRemaining = 0;
+        this.tripleJumpDuration = 20000; // 20 seconds
 
         this.cameras.main.setBackgroundColor(CONFIG.BG);
         this.cameras.main.fadeIn(400, 10, 6, 26);
@@ -115,6 +151,21 @@ class GameScene extends Phaser.Scene {
         // Heal button
         if (!this.isBossLevel) this._createHealButton();
 
+        // Shadow Cloak button
+        if (!this.isBossLevel) this._createCloakButton();
+
+        // Double Gems button
+        if (!this.isBossLevel) this._createDoubleGemsButton();
+
+        // Phoenix Feather button
+        if (!this.isBossLevel) this._createPhoenixButton();
+
+        // Lightning Dash button
+        if (!this.isBossLevel) this._createLightningButton();
+
+        // Triple Jump button
+        if (!this.isBossLevel) this._createTripleJumpButton();
+
         // Speed lines (created after everything)
         this._createSpeedLines();
     }
@@ -148,13 +199,42 @@ class GameScene extends Phaser.Scene {
             this._updateMagnetButton();
         }
 
+        // ---- Shadow Cloak countdown ----
+        if (this.shadowCloakActive) {
+            this.shadowCloakRemaining -= delta;
+            if (this.shadowCloakRemaining <= 0) {
+                this._endShadowCloak();
+            }
+            this._updateCloakButton();
+        }
+
+        // ---- Double Gems countdown ----
+        if (this.doubleGemsActive) {
+            this.doubleGemsRemaining -= delta;
+            if (this.doubleGemsRemaining <= 0) {
+                this._endDoubleGems();
+            }
+            this._updateDoubleGemsButton();
+        }
+
+        // ---- Triple Jump countdown ----
+        if (this.tripleJumpActive) {
+            this.tripleJumpRemaining -= delta;
+            if (this.tripleJumpRemaining <= 0) {
+                this._endTripleJump();
+            }
+            this._updateTripleJumpButton();
+        }
+
         // ---- Distance & speed ----
         // When time-slow is active, distance accumulates at NORMAL rate
         // In hard mode boss fight, halve distance gain to compensate for 2x speed
         let distanceDt = this.timeSlowActive
             ? dt * 2  // compensate for the halved currentSpeed
             : dt;
-        if (this.isHardMode && this.isBossLevel) {
+        if (this.isInsaneMode && this.isBossLevel) {
+            distanceDt *= 0.25;
+        } else if (this.isHardMode && this.isBossLevel) {
             distanceDt *= 0.5;
         }
         this.distancePixels += this.currentSpeed * distanceDt;
@@ -201,6 +281,12 @@ class GameScene extends Phaser.Scene {
 
         // ---- Check death ----
         if (this.player.isDead && !this.gameOverTriggered) {
+            // Phoenix Feather — auto-revive
+            if (this.hasPhoenix && !this.phoenixUsed) {
+                this.phoenixUsed = true;
+                this._activatePhoenixRevive();
+                return;
+            }
             this.gameOverTriggered = true;
             this._triggerGameOver();
         }
@@ -505,8 +591,16 @@ class GameScene extends Phaser.Scene {
         // Progress bar (not shown in endless mode)
         if (!this.isEndless) {
 
-            // Hard mode indicator
-            if (this.isHardMode) {
+            // Mode indicator
+            if (this.isInsaneMode) {
+                this.add.text(CONFIG.WIDTH / 2, 56,
+                    '\uD83D\uDCA0 INSANE MODE \u2014 4\u00d7 Speed', {
+                    ...textStyle,
+                    fontSize: '9px',
+                    fontStyle: 'bold',
+                    color: '#ff00ff',
+                }).setOrigin(0.5, 0).setDepth(100);
+            } else if (this.isHardMode) {
                 this.add.text(CONFIG.WIDTH / 2, 56,
                     '\uD83D\uDD25 HARD MODE \u2014 2\u00d7 Speed', {
                     ...textStyle,
@@ -517,7 +611,7 @@ class GameScene extends Phaser.Scene {
             }
 
             const barX = CONFIG.WIDTH / 2 - 100;
-            const barY = this.isHardMode ? 70 : 58;
+            const barY = (this.isInsaneMode || this.isHardMode) ? 70 : 58;
             const barW = 200;
             const barH = 10;
 
@@ -641,6 +735,10 @@ class GameScene extends Phaser.Scene {
             p: kb.addKey(Phaser.Input.Keyboard.KeyCodes.P),
             m: kb.addKey(Phaser.Input.Keyboard.KeyCodes.M),
             h: kb.addKey(Phaser.Input.Keyboard.KeyCodes.H),
+            c: kb.addKey(Phaser.Input.Keyboard.KeyCodes.C),
+            g: kb.addKey(Phaser.Input.Keyboard.KeyCodes.G),
+            l: kb.addKey(Phaser.Input.Keyboard.KeyCodes.L),
+            j: kb.addKey(Phaser.Input.Keyboard.KeyCodes.J),
         };
 
         // Touch / pointer controls
@@ -686,6 +784,26 @@ class GameScene extends Phaser.Scene {
         // Heal (H key)
         if (Phaser.Input.Keyboard.JustDown(this.keys.h)) {
             this._activateHeal();
+        }
+
+        // Shadow Cloak (C key)
+        if (Phaser.Input.Keyboard.JustDown(this.keys.c)) {
+            this._activateShadowCloak();
+        }
+
+        // Double Gems (G key)
+        if (Phaser.Input.Keyboard.JustDown(this.keys.g)) {
+            this._activateDoubleGems();
+        }
+
+        // Lightning Dash (L key)
+        if (Phaser.Input.Keyboard.JustDown(this.keys.l)) {
+            this._activateLightning();
+        }
+
+        // Triple Jump (J key)
+        if (Phaser.Input.Keyboard.JustDown(this.keys.j)) {
+            this._activateTripleJump();
         }
     }
 
@@ -849,6 +967,9 @@ class GameScene extends Phaser.Scene {
         const player = playerSprite.playerRef;
         if (!player || player.isDead || player.isInvincible) return;
 
+        // Shadow Cloak — pass through obstacles
+        if (this.shadowCloakActive) return;
+
         // Check if sliding under an air obstacle
         if (obstacleSprite.obstacleType && obstacleSprite.obstacleType.slidable && player.isSliding) {
             return; // Dodged!
@@ -863,7 +984,7 @@ class GameScene extends Phaser.Scene {
         soulSprite.setActive(false).setVisible(false);
         soulSprite.body.enable = false;
 
-        this.soulsCollected += CONFIG.SOUL_VALUE;
+        this.soulsCollected += CONFIG.SOUL_VALUE * (this.doubleGemsActive ? 2 : 1);
 
         // Particle burst
         if (this.soulEmitter) {
@@ -1171,6 +1292,367 @@ class GameScene extends Phaser.Scene {
     }
 
     // ----------------------------------------------------------
+    // SHADOW CLOAK ABILITY
+    // ----------------------------------------------------------
+
+    _createCloakButton() {
+        const btnX = 35;
+        const btnY = CONFIG.HEIGHT - 50;
+
+        if (!this.hasShadowCloak) { this.cloakBtn = null; return; }
+
+        this.cloakBtn = this.add.image(btnX, btnY, 'btn_cloak')
+            .setDepth(100).setScrollFactor(0)
+            .setInteractive({ useHandCursor: true });
+
+        this.cloakLabel = this.add.text(btnX, btnY + 26, 'C', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '10px', color: '#8a7a9a',
+        }).setOrigin(0.5).setDepth(100);
+
+        this.cloakTimerText = this.add.text(btnX, btnY, '', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '13px', fontStyle: 'bold', color: '#cc88ff',
+        }).setOrigin(0.5).setDepth(101).setVisible(false);
+
+        this.cloakBtn.on('pointerdown', () => this._activateShadowCloak());
+    }
+
+    _activateShadowCloak() {
+        if (!this.hasShadowCloak || this.shadowCloakUsed || this.shadowCloakActive || this.isGameOver) return;
+
+        this.shadowCloakActive = true;
+        this.shadowCloakUsed = true;
+        this.shadowCloakRemaining = this.shadowCloakDuration;
+
+        const data = SaveManager.load();
+        data.shadowCloakCount = Math.max(0, (data.shadowCloakCount || 0) - 1);
+        SaveManager.save(data);
+
+        // Make player ghostly
+        this.player.isInvincible = true;
+        this.player.sprite.setAlpha(0.4);
+        if (this.player.glow) this.player.glow.setAlpha(0.8);
+
+        this.cameras.main.flash(300, 136, 68, 204, false);
+
+        if (this.cloakTimerText) this.cloakTimerText.setVisible(true);
+
+        this.cloakHudText = this.add.text(CONFIG.WIDTH / 2, 114, '\uD83D\uDC7B SHADOW CLOAK', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '14px', fontStyle: 'bold', color: '#cc88ff',
+        }).setOrigin(0.5).setDepth(100);
+
+        this.tweens.add({
+            targets: this.cloakHudText, alpha: 0.5,
+            duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+        });
+    }
+
+    _endShadowCloak() {
+        this.shadowCloakActive = false;
+        this.shadowCloakRemaining = 0;
+        this.player.isInvincible = false;
+        this.player.sprite.setAlpha(1);
+        if (this.player.glow) this.player.glow.setAlpha(0.3);
+
+        if (this.cloakHudText) { this.cloakHudText.destroy(); this.cloakHudText = null; }
+        if (this.cloakBtn) { this.cloakBtn.setTexture('btn_cloak_off'); this.cloakBtn.removeInteractive(); }
+        if (this.cloakTimerText) this.cloakTimerText.setVisible(false);
+        if (this.cloakLabel) this.cloakLabel.setText('USED');
+    }
+
+    _updateCloakButton() {
+        if (!this.cloakTimerText) return;
+        if (this.shadowCloakActive) {
+            this.cloakTimerText.setText(`${Math.ceil(this.shadowCloakRemaining / 1000)}s`);
+        }
+    }
+
+    // ----------------------------------------------------------
+    // DOUBLE GEMS ABILITY
+    // ----------------------------------------------------------
+
+    _createDoubleGemsButton() {
+        const btnX = 35;
+        const btnY = CONFIG.HEIGHT - 100;
+
+        if (!this.hasDoubleGems) { this.doubleGemsBtn = null; return; }
+
+        this.doubleGemsBtn = this.add.image(btnX, btnY, 'btn_double_gems')
+            .setDepth(100).setScrollFactor(0)
+            .setInteractive({ useHandCursor: true });
+
+        this.doubleGemsLabel = this.add.text(btnX, btnY + 26, 'G', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '10px', color: '#8a7a9a',
+        }).setOrigin(0.5).setDepth(100);
+
+        this.doubleGemsTimerText = this.add.text(btnX, btnY, '', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '13px', fontStyle: 'bold', color: '#ffcc00',
+        }).setOrigin(0.5).setDepth(101).setVisible(false);
+
+        this.doubleGemsBtn.on('pointerdown', () => this._activateDoubleGems());
+    }
+
+    _activateDoubleGems() {
+        if (!this.hasDoubleGems || this.doubleGemsUsed || this.doubleGemsActive || this.isGameOver) return;
+
+        this.doubleGemsActive = true;
+        this.doubleGemsUsed = true;
+        this.doubleGemsRemaining = this.doubleGemsDuration;
+
+        const data = SaveManager.load();
+        data.doubleGemsCount = Math.max(0, (data.doubleGemsCount || 0) - 1);
+        SaveManager.save(data);
+
+        this.cameras.main.flash(300, 255, 200, 0, false);
+
+        if (this.doubleGemsTimerText) this.doubleGemsTimerText.setVisible(true);
+
+        this.doubleGemsHudText = this.add.text(CONFIG.WIDTH / 2, 132, '\uD83D\uDCB0 DOUBLE GEMS', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '14px', fontStyle: 'bold', color: '#ffcc00',
+        }).setOrigin(0.5).setDepth(100);
+
+        this.tweens.add({
+            targets: this.doubleGemsHudText, alpha: 0.5,
+            duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+        });
+    }
+
+    _endDoubleGems() {
+        this.doubleGemsActive = false;
+        this.doubleGemsRemaining = 0;
+
+        if (this.doubleGemsHudText) { this.doubleGemsHudText.destroy(); this.doubleGemsHudText = null; }
+        if (this.doubleGemsBtn) { this.doubleGemsBtn.setTexture('btn_double_gems_off'); this.doubleGemsBtn.removeInteractive(); }
+        if (this.doubleGemsTimerText) this.doubleGemsTimerText.setVisible(false);
+        if (this.doubleGemsLabel) this.doubleGemsLabel.setText('USED');
+    }
+
+    _updateDoubleGemsButton() {
+        if (!this.doubleGemsTimerText) return;
+        if (this.doubleGemsActive) {
+            this.doubleGemsTimerText.setText(`${Math.ceil(this.doubleGemsRemaining / 1000)}s`);
+        }
+    }
+
+    // ----------------------------------------------------------
+    // PHOENIX FEATHER ABILITY (auto-revive)
+    // ----------------------------------------------------------
+
+    _createPhoenixButton() {
+        const btnX = 35;
+        const btnY = CONFIG.HEIGHT - 150;
+
+        if (!this.hasPhoenix) { this.phoenixBtn = null; return; }
+
+        this.phoenixBtn = this.add.image(btnX, btnY, 'btn_phoenix')
+            .setDepth(100).setScrollFactor(0);
+
+        this.phoenixLabel = this.add.text(btnX, btnY + 26, 'AUTO', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '8px', color: '#ff8844',
+        }).setOrigin(0.5).setDepth(100);
+    }
+
+    _activatePhoenixRevive() {
+        // Consume from inventory
+        const data = SaveManager.load();
+        data.phoenixCount = Math.max(0, (data.phoenixCount || 0) - 1);
+        SaveManager.save(data);
+
+        // Revive the player
+        this.player.isDead = false;
+        this.player.hp = this.player.maxHp;
+        this.player.isInvincible = true;
+        this.player.sprite.setAlpha(1);
+        this.player.sprite.clearTint();
+        if (this.player.glow) this.player.glow.setAlpha(0.3);
+
+        // Reset time scale from death slow-mo
+        this.time.timeScale = 1;
+
+        // Brief invincibility after revive
+        this.time.delayedCall(2000, () => {
+            if (this.player && !this.player.isDead) {
+                this.player.isInvincible = false;
+            }
+        });
+
+        // Orange flash
+        this.cameras.main.flash(500, 255, 100, 0, false);
+
+        // HUD indicator
+        const phoenixText = this.add.text(CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2 - 40, '\uD83D\uDD25 PHOENIX REVIVE!', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '24px', fontStyle: 'bold', color: '#ff8800',
+            stroke: '#4a2a00', strokeThickness: 4,
+        }).setOrigin(0.5).setDepth(200);
+
+        this.tweens.add({
+            targets: phoenixText, alpha: 0, y: CONFIG.HEIGHT / 2 - 80,
+            duration: 1500, ease: 'Sine.easeIn',
+            onComplete: () => phoenixText.destroy(),
+        });
+
+        // Disable button visual
+        if (this.phoenixBtn) { this.phoenixBtn.setTexture('btn_phoenix_off'); }
+        if (this.phoenixLabel) this.phoenixLabel.setText('USED');
+
+        // Update hearts HUD
+        this._updateHUD_hearts();
+    }
+
+    _updateHUD_hearts() {
+        if (!this.heartIcons) return;
+        for (let i = 0; i < this.heartIcons.length; i++) {
+            this.heartIcons[i].setTexture(i < this.player.hp ? 'heart_full' : 'heart_empty');
+        }
+    }
+
+    // ----------------------------------------------------------
+    // LIGHTNING DASH ABILITY
+    // ----------------------------------------------------------
+
+    _createLightningButton() {
+        const btnX = 35;
+        const btnY = CONFIG.HEIGHT - 200;
+
+        if (!this.hasLightning) { this.lightningBtn = null; return; }
+
+        this.lightningBtn = this.add.image(btnX, btnY, 'btn_lightning')
+            .setDepth(100).setScrollFactor(0)
+            .setInteractive({ useHandCursor: true });
+
+        this.lightningLabel = this.add.text(btnX, btnY + 26, 'L', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '10px', color: '#8a7a9a',
+        }).setOrigin(0.5).setDepth(100);
+
+        this.lightningBtn.on('pointerdown', () => this._activateLightning());
+    }
+
+    _activateLightning() {
+        if (!this.hasLightning || this.lightningUsed || this.isGameOver) return;
+
+        this.lightningUsed = true;
+
+        const data = SaveManager.load();
+        data.lightningCount = Math.max(0, (data.lightningCount || 0) - 1);
+        SaveManager.save(data);
+
+        // Warp forward 500m
+        this.distancePixels += 500 * CONFIG.PIXELS_PER_METER;
+        this.distanceMeters = Math.floor(this.distancePixels / CONFIG.PIXELS_PER_METER);
+
+        // Clear all on-screen obstacles
+        if (this.worldGen && this.worldGen.obstacleGroup) {
+            this.worldGen.obstacleGroup.getChildren().forEach(obs => {
+                if (obs.active) { obs.setActive(false).setVisible(false); obs.body.enable = false; }
+            });
+        }
+
+        // Electric flash
+        this.cameras.main.flash(400, 68, 220, 255, false);
+
+        // Brief invincibility during dash
+        this.player.isInvincible = true;
+        this.time.delayedCall(1000, () => {
+            if (this.player && !this.player.isDead) this.player.isInvincible = false;
+        });
+
+        // HUD indicator
+        const dashText = this.add.text(CONFIG.WIDTH / 2, CONFIG.HEIGHT / 2 - 40, '\u26A1 LIGHTNING DASH!', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '22px', fontStyle: 'bold', color: '#44ddff',
+            stroke: '#0a2a4a', strokeThickness: 4,
+        }).setOrigin(0.5).setDepth(200);
+
+        this.tweens.add({
+            targets: dashText, alpha: 0, y: CONFIG.HEIGHT / 2 - 80,
+            duration: 1200, ease: 'Sine.easeIn',
+            onComplete: () => dashText.destroy(),
+        });
+
+        // Disable button
+        if (this.lightningBtn) { this.lightningBtn.setTexture('btn_lightning_off'); this.lightningBtn.removeInteractive(); }
+        if (this.lightningLabel) this.lightningLabel.setText('USED');
+    }
+
+    // ----------------------------------------------------------
+    // TRIPLE JUMP ABILITY
+    // ----------------------------------------------------------
+
+    _createTripleJumpButton() {
+        const btnX = 35;
+        const btnY = CONFIG.HEIGHT - 250;
+
+        if (!this.hasTripleJump) { this.tripleJumpBtn = null; return; }
+
+        this.tripleJumpBtn = this.add.image(btnX, btnY, 'btn_triple_jump')
+            .setDepth(100).setScrollFactor(0)
+            .setInteractive({ useHandCursor: true });
+
+        this.tripleJumpLabel = this.add.text(btnX, btnY + 26, 'J', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '10px', color: '#8a7a9a',
+        }).setOrigin(0.5).setDepth(100);
+
+        this.tripleJumpTimerText = this.add.text(btnX, btnY, '', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '13px', fontStyle: 'bold', color: '#44ff88',
+        }).setOrigin(0.5).setDepth(101).setVisible(false);
+
+        this.tripleJumpBtn.on('pointerdown', () => this._activateTripleJump());
+    }
+
+    _activateTripleJump() {
+        if (!this.hasTripleJump || this.tripleJumpUsed || this.tripleJumpActive || this.isGameOver) return;
+
+        this.tripleJumpActive = true;
+        this.tripleJumpUsed = true;
+        this.tripleJumpRemaining = this.tripleJumpDuration;
+
+        const data = SaveManager.load();
+        data.tripleJumpCount = Math.max(0, (data.tripleJumpCount || 0) - 1);
+        SaveManager.save(data);
+
+        this.cameras.main.flash(300, 40, 255, 130, false);
+
+        if (this.tripleJumpTimerText) this.tripleJumpTimerText.setVisible(true);
+
+        this.tripleJumpHudText = this.add.text(CONFIG.WIDTH / 2, 150, '\u2B06 TRIPLE JUMP', {
+            fontFamily: '"Segoe UI", Arial, sans-serif',
+            fontSize: '14px', fontStyle: 'bold', color: '#44ff88',
+        }).setOrigin(0.5).setDepth(100);
+
+        this.tweens.add({
+            targets: this.tripleJumpHudText, alpha: 0.5,
+            duration: 500, yoyo: true, repeat: -1, ease: 'Sine.easeInOut',
+        });
+    }
+
+    _endTripleJump() {
+        this.tripleJumpActive = false;
+        this.tripleJumpRemaining = 0;
+
+        if (this.tripleJumpHudText) { this.tripleJumpHudText.destroy(); this.tripleJumpHudText = null; }
+        if (this.tripleJumpBtn) { this.tripleJumpBtn.setTexture('btn_triple_jump_off'); this.tripleJumpBtn.removeInteractive(); }
+        if (this.tripleJumpTimerText) this.tripleJumpTimerText.setVisible(false);
+        if (this.tripleJumpLabel) this.tripleJumpLabel.setText('USED');
+    }
+
+    _updateTripleJumpButton() {
+        if (!this.tripleJumpTimerText) return;
+        if (this.tripleJumpActive) {
+            this.tripleJumpTimerText.setText(`${Math.ceil(this.tripleJumpRemaining / 1000)}s`);
+        }
+    }
+
+    // ----------------------------------------------------------
     // ENDLESS BIOME CYCLING
     // ----------------------------------------------------------
 
@@ -1464,6 +1946,7 @@ class GameScene extends Phaser.Scene {
         if (!fireballSprite.active) return;
         const player = playerSprite.playerRef;
         if (!player || player.isDead || player.isInvincible) return;
+        if (this.shadowCloakActive) return;
 
         // Destroy the fireball
         fireballSprite.setActive(false).setVisible(false);
@@ -1510,6 +1993,7 @@ class GameScene extends Phaser.Scene {
                 souls: this.soulsCollected,
                 enemies: this.enemiesDodged,
                 isHardMode: this.isHardMode,
+                isInsaneMode: this.isInsaneMode,
             };
 
             // Boss kill cutscene before victory screen
@@ -1537,6 +2021,7 @@ class GameScene extends Phaser.Scene {
                 levelIndex: this.levelIndex,
                 isEndless: this.isEndless,
                 isHardMode: this.isHardMode,
+                isInsaneMode: this.isInsaneMode,
             });
         });
     }

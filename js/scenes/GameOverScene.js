@@ -15,6 +15,7 @@ class GameOverScene extends Phaser.Scene {
         this.levelIndex = (data.levelIndex !== undefined) ? data.levelIndex : 0;
         this.isEndless = !!data.isEndless;
         this.isHardMode = !!data.isHardMode;
+        this.isInsaneMode = !!data.isInsaneMode;
     }
 
     create() {
@@ -123,6 +124,7 @@ class GameOverScene extends Phaser.Scene {
                 levelIndex: this.levelIndex,
                 isEndless: this.isEndless,
                 isHardMode: this.isHardMode,
+                isInsaneMode: this.isInsaneMode,
             }));
         });
 
